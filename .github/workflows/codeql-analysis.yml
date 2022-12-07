@@ -11,14 +11,8 @@
 #
 name: "CodeQL"
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
+on: [push]
     # The branches below must be a subset of the branches above
-    branches: [ master ]
-  schedule:
-    - cron: '20 16 * * 5'
 
 jobs:
   analyze:
@@ -34,10 +28,25 @@ jobs:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
 
     steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+        pip install numpy
+    - run: sudo apt update
+    - run: sudo apt install inotify-tools
+    - run: inotifywait -mr /home/runner/work/dynamic-datasource-spring-boot-starter/dynamic-datasource-spring-boot-starter/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'basak'
+    - run: touch starting_analyze_Checkoutrepository_37
+    - run: rm starting_analyze_Checkoutrepository_37
     - name: Checkout repository
       uses: actions/checkout@v2
 
     # Initializes the CodeQL tools for scanning.
+    - run: touch starting_analyze_InitializeCodeQL_41
+    - run: rm starting_analyze_InitializeCodeQL_41
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
@@ -49,6 +58,8 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
+    - run: touch starting_analyze_Autobuild_52
+    - run: rm starting_analyze_Autobuild_52
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
 
@@ -63,5 +74,30 @@ jobs:
     #   make bootstrap
     #   make release
 
+    - run: touch starting_analyze_PerformCodeQLAnalysis_66
+    - run: rm starting_analyze_PerformCodeQLAnalysis_66
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+    - run: touch starting_finished_finished_8979874
+      if: always()
+    - run: rm starting_finished_finished_8979874
+      if: always()
+    - name: Execute py script # run file
+      if: always()
+      run: |
+        python .github/workflows/script.py
+    - run: cp /home/runner/inotify-logs.csv /home/runner/work/dynamic-datasource-spring-boot-starter/dynamic-datasource-spring-boot-starter/optimizing-ci-builds-ci-analysis/
+      if: always()
+    - name: Pushes analysis to another repository
+      if: always()
+      id: push_directory
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source-directory: 'optimizing-ci-builds-ci-analysis'
+        destination-github-username: 'optimizing-ci-builds'
+        destination-repository-name: 'ci-analyzes'
+        target-branch: 'dynamic-datasource-spring-boot-starter.1670424990'
+        target-directory: 'dynamic-datasource-spring-boot-starter/1670424990/.github/workflows/codeql-analysis/analyze'
+
